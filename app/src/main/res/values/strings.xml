@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Sunshine</string>
+    <string name="hello_world">Hello world!</string>
+
+    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_detail">DetailActivity</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_refresh" translatable="false">Refresh</string>
+    <string name="action_show_pref_location_map">Show Map</string>
+    <string name="msg_no_map_app_found">Sorry, Couldn\'t find a Map app!</string>
+    <string name="action_share">Share</string>
+    <string name="msg_no_share_provider">Sorry, Couldn\'t find a Share Provider!</string>
+
+    <string name="pref_location_key" translatable="false">location</string>
+    <string name="pref_location_label">Location</string>
+    <string name="pref_location_default" translatable="false">Pune</string>
+
+    <string name="pref_temp_unit_key" translatable="false">temp_unit</string>
+    <string name="pref_temp_unit_label">Pick Your Units</string>
+
+    <string name="pref_temp_unit_metric_label">Metric</string>
+    <string name="pref_temp_unit_imperial_label">Imperial</string>
+
+    <string name="pref_temp_unit_metric_value" translatable="false">metric</string>
+    <string name="pref_temp_unit_imperial_value" translatable="false">imperial</string>
+
+</resources>
+
