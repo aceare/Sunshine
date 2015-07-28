@@ -1,33 +1,74 @@
 package com.example.shreekant.sunshine.app;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
-
 
 public class MainActivity extends ActionBarActivity {
 
+    private static final String FORECASTFRAGMENT_TAG = "FORECASTFRAGMENT_TAG";
     private final String LOG_TAG = MainActivity.class.getSimpleName();
+    private String mLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v(LOG_TAG, "onCreate()");
+        mLocation = Utility.getPreferredLocation(this);
+        Log.v(LOG_TAG, "onCreate() Location = " + mLocation);
+
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new ForecastFragment())
+                    .add(R.id.container, new ForecastFragment(), FORECASTFRAGMENT_TAG)
                     .commit();
         }
+        ViewServer.get(this).addWindow(this);
     }
 
+    @Override
+    protected void onDestroy() {
+        Log.v(LOG_TAG, "onDestroy()");
+        super.onDestroy();
+        ViewServer.get(this).removeWindow(this);
+    }
+
+    @Override
+    protected void onStart() {
+        Log.v(LOG_TAG, "onStart()");
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.v(LOG_TAG, "onStop()");
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.v(LOG_TAG, "onPause()");
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        Log.v(LOG_TAG, "onResume()");
+        super.onResume();
+
+        // handle if location changed
+        String prefLocation = Utility.getPreferredLocation(this);
+        if (!mLocation.equals(prefLocation)) {
+            Log.v(LOG_TAG, "onResume(): New Location " + prefLocation);
+            mLocation = prefLocation;
+            ForecastFragment ff = (ForecastFragment)getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
+            ff.onLocationChanged();
+        }
+        ViewServer.get(this).setFocusedWindow(this);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -48,57 +89,32 @@ public class MainActivity extends ActionBarActivity {
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
-        else
+
         if (id == R.id.action_show_map) {
-            showPreferredLocationMap();
+            openPreferredLocationInMap();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
-    private void showPreferredLocationMap() {
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        String prefLocation = sharedPref.getString(getString(R.string.pref_location_key),
-                getString(R.string.pref_location_default)); // "Pune"
-        Uri geoLocation = Uri.parse("geo:0,0?").buildUpon().appendQueryParameter("q", prefLocation).build();
+    private void openPreferredLocationInMap() {
+        String location = Utility.getPreferredLocation(this);
+
+        // Using the URI scheme for showing a location found on a map.  This super-handy
+        // intent can is detailed in the "Common Intents" page of Android's developer site:
+        // http://developer.android.com/guide/components/intents-common.html#Maps
+        Uri geoLocation = Uri.parse("geo:0,0?").buildUpon()
+                .appendQueryParameter("q", location)
+                .build();
+
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(geoLocation);
+
         if (intent.resolveActivity(getPackageManager()) != null) {
             startActivity(intent);
+        } else {
+            Log.d(LOG_TAG, "Couldn't call " + location + ", no receiving apps installed!");
         }
-        else {
-            Toast.makeText(this, getString(R.string.msg_no_map_app_found), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.v(LOG_TAG, "onStart()");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStart();
-        Log.v(LOG_TAG, "onStop()");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.v(LOG_TAG, "onPause()");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.v(LOG_TAG, "onResume()");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.v(LOG_TAG, "onDestroy()");
     }
 }
+

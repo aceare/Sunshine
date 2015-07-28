@@ -3,6 +3,7 @@ package com.example.shreekant.sunshine.app;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -13,11 +14,13 @@ public class DetailActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        DetailActivityFragment detailActivityFragment = new DetailActivityFragment();
-        detailActivityFragment.setArguments(getIntent().getExtras());   // Pass down Activity's putExtra to its Fragment.
+        DetailFragment detailFragment = new DetailFragment();
+//        detailFragment.setArguments(getIntent().getExtras());   // Pass down Activity's putExtra to its Fragment.
+//Log.v("TMP", "DetailActivity. getExtras(): " + getIntent().getExtras().toString());
+Log.v("TMP", "DetailActivity. getData(): " + getIntent().getData());
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, detailActivityFragment)
+                    .add(R.id.container, detailFragment)
                     .commit();
         }
     }
