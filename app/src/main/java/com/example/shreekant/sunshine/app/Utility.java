@@ -33,9 +33,9 @@ public class Utility {
 
     public static boolean isMetric(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        return prefs.getString(context.getString(R.string.pref_temp_unit_key),
-                context.getString(R.string.pref_temp_unit_metric_value))
-                .equals(context.getString(R.string.pref_temp_unit_metric_value));
+        return prefs.getString(context.getString(R.string.pref_units_key),
+                context.getString(R.string.pref_units_metric))
+                .equals(context.getString(R.string.pref_units_metric));
     }
 
     static String formatTemperature(Context context, double temperature, boolean isMetric) {
@@ -45,15 +45,11 @@ public class Utility {
         } else {
             temp = temperature;
         }
-//        return String.format("%.0f", temp);
-        int formatId = R.string.format_temperature;
-        return String.format(context.getString(
-                        formatId),
-                temp);
+        return context.getString(R.string.format_temperature, temp);
     }
 
-    static String formatDate(long dateInMillis) {
-        Date date = new Date(dateInMillis);
+    static String formatDate(long dateInMilliseconds) {
+        Date date = new Date(dateInMilliseconds);
         return DateFormat.getDateInstance().format(date);
     }
 
@@ -88,9 +84,9 @@ public class Utility {
             String today = context.getString(R.string.today);
             int formatId = R.string.format_full_friendly_date;
             return String.format(context.getString(
-                            formatId),
+                    formatId,
                     today,
-                    getFormattedMonthDay(context, dateInMillis));
+                    getFormattedMonthDay(context, dateInMillis)));
         } else if ( julianDay < currentJulianDay + 7 ) {
             // If the input date is less than a week in the future, just return the day name.
             return getDayName(context, dateInMillis);
@@ -146,51 +142,37 @@ public class Utility {
         return monthDayString;
     }
 
-    public static String getFormattedHumidity(Context context, double humidity) {
-        return context.getString(R.string.format_humidity,
-                humidity);
-    }
-
-    public static String getFormattedWind(Context context, double speed, double degrees, boolean isMetric) {
-        String units;
-        if (isMetric) {
-            units = context.getString(R.string.speed_metric_units);
+    public static String getFormattedWind(Context context, float windSpeed, float degrees) {
+        int windFormat;
+        if (Utility.isMetric(context)) {
+            windFormat = R.string.format_wind_kmh;
         } else {
-            units = context.getString(R.string.speed_imperial_units);
-            speed = .621371192237334f * speed;
+            windFormat = R.string.format_wind_mph;
+            windSpeed = .621371192237334f * windSpeed;
         }
 
-        return context.getString(R.string.format_wind,
-                speed, units, getDirectionString(degrees));
-    }
-
-    private static String getDirectionString(double degrees) {
+        // From wind direction in degrees, determine compass direction as a string (e.g NW)
+        // You know what's fun, writing really long if/else statements with tons of possible
+        // conditions.  Seriously, try it!
         String direction = "Unknown";
-        if (degrees < 22.5 && degrees >= 0.0) {
+        if (degrees >= 337.5 || degrees < 22.5) {
             direction = "N";
-        } else if (degrees < 67.5) {
+        } else if (degrees >= 22.5 && degrees < 67.5) {
             direction = "NE";
-        } else if (degrees < 112.5) {
+        } else if (degrees >= 67.5 && degrees < 112.5) {
             direction = "E";
-        } else if (degrees < 157.5) {
+        } else if (degrees >= 112.5 && degrees < 157.5) {
             direction = "SE";
-        } else if (degrees < 202.5) {
+        } else if (degrees >= 157.5 && degrees < 202.5) {
             direction = "S";
-        } else if (degrees < 247.5) {
+        } else if (degrees >= 202.5 && degrees < 247.5) {
             direction = "SW";
-        } else if (degrees < 292.5) {
+        } else if (degrees >= 247.5 && degrees < 292.5) {
             direction = "W";
-        } else if (degrees < 337.5) {
+        } else if (degrees >= 292.5 && degrees < 337.5) {
             direction = "NW";
-        } else if (degrees <=360.0 ){
-            direction = "N";
         }
-        return direction;
-    }
-
-    public static String getFormattedPressure(Context context, double pressure) {
-        return context.getString(R.string.format_pressure,
-                pressure);
+        return String.format(context.getString(windFormat), windSpeed, direction);
     }
 
     /**
@@ -201,7 +183,7 @@ public class Utility {
      */
     public static int getIconResourceForWeatherCondition(int weatherId) {
         // Based on weather code data found at:
-        // http://openweathermap.org/weather-conditions
+        // http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
         if (weatherId >= 200 && weatherId <= 232) {
             return R.drawable.ic_storm;
         } else if (weatherId >= 300 && weatherId <= 321) {
@@ -232,11 +214,11 @@ public class Utility {
      * Helper method to provide the art resource id according to the weather condition id returned
      * by the OpenWeatherMap call.
      * @param weatherId from OpenWeatherMap API response
-     * @return resource id for the corresponding image. -1 if no relation is found.
+     * @return resource id for the corresponding icon. -1 if no relation is found.
      */
     public static int getArtResourceForWeatherCondition(int weatherId) {
         // Based on weather code data found at:
-        // http://openweathermap.org/weather-conditions
+        // http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
         if (weatherId >= 200 && weatherId <= 232) {
             return R.drawable.art_storm;
         } else if (weatherId >= 300 && weatherId <= 321) {

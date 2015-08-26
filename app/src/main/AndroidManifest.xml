@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.shreekant.sunshine.app" >
 
+    <!-- This permission is necessary in order for Sunshine to perform network access. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -9,7 +10,6 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name" >
@@ -28,18 +28,16 @@
                 android:value="com.example.shreekant.sunshine.app.MainActivity" />
         </activity>
         <activity
-            android:name="SettingsActivity"
+            android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.shreekant.sunshine.app.MainActivity" />
         </activity>
-
         <provider
             android:authorities="com.example.shreekant.sunshine.app"
             android:name=".data.WeatherProvider" />
-
     </application>
 
 </manifest>

@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.example.shreekant.sunshine.app;
 
 import android.content.Intent;
@@ -8,7 +23,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,14 +37,11 @@ import com.example.shreekant.sunshine.app.data.WeatherContract;
 /**
  * Encapsulates fetching the forecast and displaying it as a {@link ListView} layout.
  */
-public class ForecastFragment extends Fragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private final String LOG_TAG = ForecastFragment.class.getSimpleName();
-
-    private static final int FORECAST_LOADER_ID = 0;
-    private ForecastAdapter mForecastAdapter;
-
+    private static final int FORECAST_LOADER = 0;
+    // For the forecast view we're showing only a small subset of the stored data.
+    // Specify the columns we need.
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the location & weather tables in the background
@@ -48,6 +59,7 @@ public class ForecastFragment extends Fragment
             WeatherContract.LocationEntry.COLUMN_COORD_LAT,
             WeatherContract.LocationEntry.COLUMN_COORD_LONG
     };
+
     // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
     // must change.
     static final int COL_WEATHER_ID = 0;
@@ -60,47 +72,7 @@ public class ForecastFragment extends Fragment
     static final int COL_COORD_LAT = 7;
     static final int COL_COORD_LONG = 8;
 
-    // LoaderManager.LoaderCallbacks
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        // This is called when a new Loader needs to be created.  This
-        // sample only has one Loader, so we don't care about the ID.
-        // Create and return a CursorLoader that will take care of
-        // creating a Cursor for the data being displayed.
-
-        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-        Uri weatherForLocationStartDateUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
-                Utility.getPreferredLocation(getActivity()),
-                System.currentTimeMillis());
-
-//        return new CursorLoader(getActivity(),
-//                WeatherContract.WeatherEntry.CONTENT_URI,
-//                null,                                                               // projection
-//                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?",     // selection
-//                new String[]{Utility.getPreferredLocation(getActivity())},          // selection params
-//                null);      // sort order
-        return new CursorLoader(getActivity(),
-                weatherForLocationStartDateUri,
-                FORECAST_COLUMNS,   // projection
-                null,   // selection
-                null,   // selection params
-                null);  // sort order
-    }
-
-    // LoaderManager.LoaderCallbacks
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        // Swap the new cursor in.  (The framework will take care of closing the
-        // old cursor once we return.)
-        mForecastAdapter.swapCursor(data);
-    }
-
-    // LoaderManager.LoaderCallbacks
-    public void onLoaderReset(Loader<Cursor> loader) {
-        // This is called when the last Cursor provided to onLoadFinished()
-        // above is about to be closed.  We need to make sure we are no
-        // longer using it.
-        mForecastAdapter.swapCursor(null);
-    }
-
+    private ForecastAdapter mForecastAdapter;
 
     public ForecastFragment() {
     }
@@ -110,14 +82,6 @@ public class ForecastFragment extends Fragment
         super.onCreate(savedInstanceState);
         // Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        Log.v(LOG_TAG, "onActivityCreated: initLoader");
-        getLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
     }
 
     @Override
@@ -141,20 +105,8 @@ public class ForecastFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        String locationSetting = Utility.getPreferredLocation(getActivity());
-
-        // Sort order:  Ascending, by date.
-        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
-                locationSetting, System.currentTimeMillis());
-
-        Cursor cur = getActivity().getContentResolver().query(weatherForLocationUri,
-                null, null, null, sortOrder);
-        Log.v(LOG_TAG, "onCreateView: setting CursorAdapter using " + weatherForLocationUri.toString());
-        // The CursorAdapter will take data from our cursor and populate the ListView
-        // However, we cannot use FLAG_AUTO_REQUERY since it is deprecated, so we will end
-        // up with an empty list the first time we run.
-        mForecastAdapter = new ForecastAdapter(getActivity(), cur, 0);
+        // The CursorAdapter will take data from our cursor and populate the ListView.
+        mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -162,10 +114,11 @@ public class ForecastFragment extends Fragment
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(mForecastAdapter);
 
+        // We'll call our MainActivity
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 // CursorAdapter returns a cursor at the correct position for getItem(), or null
                 // if it cannot seek to that position.
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
@@ -179,8 +132,19 @@ public class ForecastFragment extends Fragment
                 }
             }
         });
-
         return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(FORECAST_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    // since we read the location when we create the loader, all we need to do is restart things
+    void onLocationChanged( ) {
+        updateWeather();
+        getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
     }
 
     private void updateWeather() {
@@ -190,17 +154,29 @@ public class ForecastFragment extends Fragment
     }
 
     @Override
-    public void onStart() {
-        Log.v(LOG_TAG, "onStart: updateWeather()");
-        super.onStart();
-        updateWeather();
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        String locationSetting = Utility.getPreferredLocation(getActivity());
+
+        // Sort order:  Ascending, by date.
+        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
+        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
+                locationSetting, System.currentTimeMillis());
+
+        return new CursorLoader(getActivity(),
+                weatherForLocationUri,
+                FORECAST_COLUMNS,
+                null,
+                null,
+                sortOrder);
     }
 
-    public void onLocationChanged() {
-        Log.v(LOG_TAG, "onLocationChanged: updateWeather() and restartLoader()");
-//        updateWeather();
-        // Starts a new or restarts an existing Loader in this manager, registers the callbacks to it,
-        // and (if the activity/fragment is currently started) starts loading it.
-        getLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        mForecastAdapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        mForecastAdapter.swapCursor(null);
     }
 }
