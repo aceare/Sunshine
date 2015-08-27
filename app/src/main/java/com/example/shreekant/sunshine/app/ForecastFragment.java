@@ -114,10 +114,9 @@ public class ForecastFragment extends Fragment
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        Log.v(LOG_TAG, "onActivityCreated: initLoader");
         getLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
+        super.onActivityCreated(savedInstanceState);
+        Log.v(LOG_TAG, "onActivityCreated: initLoader");
     }
 
     @Override
@@ -141,8 +140,8 @@ public class ForecastFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+/*
         String locationSetting = Utility.getPreferredLocation(getActivity());
-
         // Sort order:  Ascending, by date.
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
         Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
@@ -155,6 +154,9 @@ public class ForecastFragment extends Fragment
         // However, we cannot use FLAG_AUTO_REQUERY since it is deprecated, so we will end
         // up with an empty list the first time we run.
         mForecastAdapter = new ForecastAdapter(getActivity(), cur, 0);
+*/
+        // The CursorAdapter will take data from our cursor and populate the ListView.
+        mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -189,12 +191,12 @@ public class ForecastFragment extends Fragment
         weatherTask.execute(location);
     }
 
-    @Override
-    public void onStart() {
-        Log.v(LOG_TAG, "onStart: updateWeather()");
-        super.onStart();
-        updateWeather();
-    }
+//    @Override
+//    public void onStart() {
+//        Log.v(LOG_TAG, "onStart: updateWeather()");
+//        super.onStart();
+//        updateWeather();
+//    }
 
     public void onLocationChanged() {
         Log.v(LOG_TAG, "onLocationChanged: updateWeather() and restartLoader()");

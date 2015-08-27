@@ -26,14 +26,14 @@ public class MainActivity extends ActionBarActivity {
                     .add(R.id.container, new ForecastFragment(), FORECASTFRAGMENT_TAG)
                     .commit();
         }
-        ViewServer.get(this).addWindow(this);
+//        ViewServer.get(this).addWindow(this);
     }
 
     @Override
     protected void onDestroy() {
         Log.v(LOG_TAG, "onDestroy()");
         super.onDestroy();
-        ViewServer.get(this).removeWindow(this);
+//        ViewServer.get(this).removeWindow(this);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class MainActivity extends ActionBarActivity {
             ForecastFragment ff = (ForecastFragment)getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
             ff.onLocationChanged();
         }
-        ViewServer.get(this).setFocusedWindow(this);
+//        ViewServer.get(this).setFocusedWindow(this);
     }
 
     @Override
