@@ -4,28 +4,49 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends ActionBarActivity {
 
-    private static final String FORECASTFRAGMENT_TAG = "FORECASTFRAGMENT_TAG";
+    private static final String DETAILFRAGMENT_TAG = "DETAILFRAGMENT_TAG";
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private String mLocation;
+    private boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        Log.v(LOG_TAG, "onCreate() screen resolution / display metrics = " + metrics);
+
+
         mLocation = Utility.getPreferredLocation(this);
         Log.v(LOG_TAG, "onCreate() Location = " + mLocation);
 
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new ForecastFragment(), FORECASTFRAGMENT_TAG)
-                    .commit();
+
+        if (findViewById(R.id.weather_detail_container) != null) {
+            // The detail container view will be present only in the large-screen layouts
+            // (res/layout-sw600dp). If this view is present, then the activity should be
+            // in two-pane mode.
+            mTwoPane = true;
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.weather_detail_container, new DetailFragment(), DETAILFRAGMENT_TAG)
+                        .commit();
+            }
+        } else {
+            mTwoPane = false;
         }
+        Log.v(LOG_TAG, "onCreate() mTwoPane = " + mTwoPane);
 //        ViewServer.get(this).addWindow(this);
     }
 
@@ -64,7 +85,7 @@ public class MainActivity extends ActionBarActivity {
         if (!mLocation.equals(prefLocation)) {
             Log.v(LOG_TAG, "onResume(): New Location " + prefLocation);
             mLocation = prefLocation;
-            ForecastFragment ff = (ForecastFragment)getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
+            ForecastFragment ff = (ForecastFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
             ff.onLocationChanged();
         }
 //        ViewServer.get(this).setFocusedWindow(this);

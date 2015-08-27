@@ -94,8 +94,9 @@ public class DetailFragment extends Fragment
         // creating a Cursor for the data being displayed.
 
         Intent intent = getActivity().getIntent();
-        if (intent == null)
+        if (intent == null || intent.getData() == null) {
             return null;
+        }
 //Log.v("TMP", "DetailFragment. getExtras(): " + getActivity().getIntent().getExtras().toString());
 Log.v("TMP", "DetailFragment. getData(): " + getActivity().getIntent().getData());
         Uri uri = intent.getData();
