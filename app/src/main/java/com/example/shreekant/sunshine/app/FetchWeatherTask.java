@@ -72,9 +72,11 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
                 null);
 
         if (locationCursor.moveToFirst()) {
+            Log.d(LOG_TAG, "addLocation: We've Location " + locationSetting + ", City " + cityName);
             int locationIdIndex = locationCursor.getColumnIndex(WeatherContract.LocationEntry._ID);
             locationId = locationCursor.getLong(locationIdIndex);
         } else {
+            Log.d(LOG_TAG, "addLocation: Adding Location " + locationSetting + ", City " + cityName);
             // Now that the content provider is set up, inserting rows of data is pretty simple.
             // First create a ContentValues object to hold the data you want to insert.
             ContentValues locationValues = new ContentValues();
@@ -286,6 +288,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
                     .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
                     .build();
 
+            Log.d(LOG_TAG, "doInBackground: GET " + builtUri.toString());
             URL url = new URL(builtUri.toString());
 
             // Create the request to OpenWeatherMap, and open the connection

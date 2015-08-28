@@ -35,6 +35,7 @@ public class DetailFragment extends Fragment
 
     private static final int FORECAST_DETAILS_LOADER_ID = 0;
     private static final String FORECAST_SHARE_HASHTAG = " #Sunshine";
+    static final String LOCATION_DATE_URI = "LOCATION_DATE_URI";
 
     private static final String[] FORECAST_DETAILS_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -79,6 +80,72 @@ public class DetailFragment extends Fragment
 
     String mForecastStr;
     private ShareActionProvider mShareActionProvider;
+    private Uri mLocationDateUri;
+
+    public DetailFragment() {
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mLocationDateUri = arguments.getParcelable(DetailFragment.LOCATION_DATE_URI);
+        }
+
+        View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        mIconView = (ImageView) rootView.findViewById(R.id.detail_icon);
+        mDayNameView = (TextView) rootView.findViewById(R.id.detail_day_name_textview);
+        mMonthDayView = (TextView) rootView.findViewById(R.id.detail_month_day_textview);
+        mDescriptionView = (TextView) rootView.findViewById(R.id.detail_forecast_textview);
+        mHighTempView = (TextView) rootView.findViewById(R.id.detail_high_textview);
+        mLowTempView = (TextView) rootView.findViewById(R.id.detail_low_textview);
+        mHumidityView = (TextView) rootView.findViewById(R.id.detail_humidity_textview);
+        mWindView = (TextView) rootView.findViewById(R.id.detail_wind_textview);
+        mPressureView = (TextView) rootView.findViewById(R.id.detail_pressure_textview);
+        return rootView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+//        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.detailfragment, menu);
+
+        // Retrieve the share menu item
+        MenuItem shareItem = menu.findItem(R.id.action_share);
+
+        // Get ShareActionProvider and attach intent to it
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+        if (mShareActionProvider != null) {
+            // If onLoadFinished happens before this, we can go ahead and set the share intent now. TODO / BAD?
+            if (mForecastStr != null)
+                mShareActionProvider.setShareIntent(createShareForecastIntent());
+        }
+        else {
+            Toast.makeText(getActivity(), getString(R.string.msg_no_share_provider), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private Intent createShareForecastIntent() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, mForecastStr + FORECAST_SHARE_HASHTAG);
+        return shareIntent;
+    }
+
+    void onLocationChanged(String newLocation) {
+        // replace the uri, since the location has changed
+        Uri uri = mLocationDateUri;
+        if (null != uri) {
+            long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+            Uri updatedUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(newLocation, date);
+            mLocationDateUri = updatedUri;
+            getLoaderManager().restartLoader(FORECAST_DETAILS_LOADER_ID, null, this);
+        }
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -90,22 +157,18 @@ public class DetailFragment extends Fragment
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         // This is called when a new Loader needs to be created.  This
         // sample only has one Loader, so we don't care about the ID.
-        // Create and return a CursorLoader that will take care of
-        // creating a Cursor for the data being displayed.
 
-        Intent intent = getActivity().getIntent();
-        if (intent == null || intent.getData() == null) {
-            return null;
+        if (mLocationDateUri != null) {
+            // Create and return a CursorLoader that will take care of
+            // creating a Cursor for the data being displayed.
+            return new CursorLoader(getActivity(),
+                    mLocationDateUri,
+                    FORECAST_DETAILS_COLUMNS,   // projection
+                    null,   // selection
+                    null,   // selection params
+                    null);  // sort order
         }
-//Log.v("TMP", "DetailFragment. getExtras(): " + getActivity().getIntent().getExtras().toString());
-Log.v("TMP", "DetailFragment. getData(): " + getActivity().getIntent().getData());
-        Uri uri = intent.getData();
-        return new CursorLoader(getActivity(),
-                uri,
-                FORECAST_DETAILS_COLUMNS,   // projection
-                null,   // selection
-                null,   // selection params
-                null);  // sort order
+        return null;
     }
 
     // LoaderManager.LoaderCallbacks
@@ -172,52 +235,4 @@ Log.v("TMP", "DetailFragment. getData(): " + getActivity().getIntent().getData()
 
     }
 
-    public DetailFragment() {
-        setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-//        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.detailfragment, menu);
-
-        // Retrieve the share menu item
-        MenuItem shareItem = menu.findItem(R.id.action_share);
-
-        // Get ShareActionProvider and attach intent to it
-        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
-        if (mShareActionProvider != null) {
-            // If onLoadFinished happens before this, we can go ahead and set the share intent now. TODO / BAD?
-            if (mForecastStr != null)
-                mShareActionProvider.setShareIntent(createShareForecastIntent());
-        }
-        else {
-            Toast.makeText(getActivity(), getString(R.string.msg_no_share_provider), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
-        View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
-        mIconView = (ImageView) rootView.findViewById(R.id.detail_icon);
-        mDayNameView = (TextView) rootView.findViewById(R.id.detail_day_name_textview);
-        mMonthDayView = (TextView) rootView.findViewById(R.id.detail_month_day_textview);
-        mDescriptionView = (TextView) rootView.findViewById(R.id.detail_forecast_textview);
-        mHighTempView = (TextView) rootView.findViewById(R.id.detail_high_textview);
-        mLowTempView = (TextView) rootView.findViewById(R.id.detail_low_textview);
-        mHumidityView = (TextView) rootView.findViewById(R.id.detail_humidity_textview);
-        mWindView = (TextView) rootView.findViewById(R.id.detail_wind_textview);
-        mPressureView = (TextView) rootView.findViewById(R.id.detail_pressure_textview);
-        return rootView;
-    }
-
-    private Intent createShareForecastIntent() {
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-        shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_TEXT, mForecastStr + FORECAST_SHARE_HASHTAG);
-        return shareIntent;
-    }
 }

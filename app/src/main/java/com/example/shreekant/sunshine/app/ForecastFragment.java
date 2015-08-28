@@ -1,6 +1,5 @@
 package com.example.shreekant.sunshine.app;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -173,11 +172,9 @@ public class ForecastFragment extends Fragment
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
                     String locationSetting = Utility.getPreferredLocation(getActivity());
-                    Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .setData(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                                    locationSetting, cursor.getLong(COL_WEATHER_DATE)
-                            ));
-                    startActivity(intent);
+                    Uri locationDateUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                            locationSetting, cursor.getLong(COL_WEATHER_DATE));
+                    ((Callback)getActivity()).onItemSelected(locationDateUri);
                 }
             }
         });
@@ -200,9 +197,21 @@ public class ForecastFragment extends Fragment
 
     public void onLocationChanged() {
         Log.v(LOG_TAG, "onLocationChanged: updateWeather() and restartLoader()");
-//        updateWeather();
+        updateWeather();
         // Starts a new or restarts an existing Loader in this manager, registers the callbacks to it,
         // and (if the activity/fragment is currently started) starts loading it.
         getLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
+    }
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Uri dateUri);
     }
 }
