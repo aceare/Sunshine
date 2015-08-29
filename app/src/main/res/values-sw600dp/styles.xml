@@ -1,0 +1,9 @@
+<resources>
+
+    <!-- In screens of sufficient width, this style defines modifications for two-pane layout.
+         Setting choiceMode to singleChoice enables appropriate type of "activated" touch_selector based on API version. -->
+    <style name="ForecastListStyle">
+        <item name="android:choiceMode">singleChoice</item>
+    </style>
+
+</resources>
