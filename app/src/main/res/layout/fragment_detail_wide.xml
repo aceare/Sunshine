@@ -1,0 +1,129 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:minHeight="?android:attr/listPreferredItemHeight"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        tools:context="com.example.shreekant.sunshine.app.DetailFragment">
+
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingLeft="16dp">
+            <TextView
+                android:id="@+id/detail_day_name_textview"
+                android:layout_width="match_parent"
+                android:text="day_name"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/detail_month_day_textview"
+                android:layout_width="match_parent"
+                android:text="month_day"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/detail_high_textview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="high"/>
+
+            <TextView
+                android:id="@+id/detail_low_textview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/detail_humidity_textview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="humidity"/>
+
+            <TextView
+                android:id="@+id/detail_wind_textview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/detail_pressure_textview"
+                android:layout_width="match_parent"
+                android:text="pressure"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/detail_dummy_textview"
+                android:layout_width="match_parent"
+                android:text="long dummy
+                dd
+                dd
+                dd
+                dd
+                dd
+                dd
+                dd
+                dd
+                dd
+                pp
+                pp
+                pp
+                pp
+                dd
+                dd
+                dd
+                dd
+                dd
+                dd
+                dd
+                dd
+                dd
+                pp
+                pp
+                pp
+                pp
+                Last Line"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingLeft="16dp">
+
+            <ImageView
+                android:id="@+id/detail_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/detail_forecast_textview"
+                android:layout_width="wrap_content"
+                android:text="forecast"
+                android:layout_height="wrap_content"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
