@@ -15,6 +15,9 @@ import android.widget.TextView;
  * from a {@link android.database.Cursor} to a {@link android.widget.ListView}.
  */
 public class ForecastAdapter extends CursorAdapter {
+    // whether to use (little detailed) special layout for the first item in list:
+    private boolean mUseTodayLayout = true;
+
     public ForecastAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
     }
@@ -59,7 +62,7 @@ public class ForecastAdapter extends CursorAdapter {
 
     @Override
     public int getItemViewType(int position) {
-        return (0 == position) ? VIEW_TYPE_TODAY : VIEW_TYPE_FUTURE;
+        return (0 == position) && (mUseTodayLayout) ? VIEW_TYPE_TODAY : VIEW_TYPE_FUTURE;
     }
 
     /*
@@ -101,6 +104,10 @@ public class ForecastAdapter extends CursorAdapter {
         holder.descView.setText(cursor.getString(ForecastFragment.COL_WEATHER_DESC));
         holder.maxTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP), Utility.isMetric(context)));
         holder.minTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP), Utility.isMetric(context)));
+    }
+
+    public void setUseTodayLayout(boolean useTodayLayout) {
+        mUseTodayLayout = useTodayLayout;
     }
 
     class ViewHolder {

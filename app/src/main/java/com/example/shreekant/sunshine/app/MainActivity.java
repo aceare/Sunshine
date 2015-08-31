@@ -46,9 +46,15 @@ public class MainActivity   extends ActionBarActivity
             }
         } else {
             mTwoPane = false;
+            getSupportActionBar().setElevation(0f);
         }
         Log.v(LOG_TAG, "onCreate() mTwoPane = " + mTwoPane);
-//        ViewServer.get(this).addWindow(this);
+
+        ForecastFragment forecastFragment =  ((ForecastFragment)getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_forecast));
+        forecastFragment.setUseTodayLayout(!mTwoPane);
+
+        //        ViewServer.get(this).addWindow(this);
     }
 
     @Override

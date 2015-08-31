@@ -59,8 +59,130 @@ public class ForecastFragment extends Fragment
     static final int COL_WEATHER_CONDITION_ID = 6;
     static final int COL_COORD_LAT = 7;
     static final int COL_COORD_LONG = 8;
-    private int mPosition;
     private ListView mListView;
+    private int mPosition;              // position in listview
+    private boolean mUseTodayLayout;    // whether to use (little detailed) special layout for the first item in list.
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Uri dateUri);
+    }
+
+    public ForecastFragment() {
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // Add this line in order for this fragment to handle menu events.
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
+        super.onActivityCreated(savedInstanceState);
+        Log.v(LOG_TAG, "onActivityCreated: initLoader");
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.forecastfragment, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        if (id == R.id.action_refresh) {
+            updateWeather();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // The CursorAdapter will take data from our cursor and populate the ListView.
+        mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
+
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        // Get a reference to the ListView, and attach this adapter to it.
+        mListView = (ListView) rootView.findViewById(R.id.listview_forecast);
+        mListView.setAdapter(mForecastAdapter);
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+                // CursorAdapter returns a cursor at the correct position for getItem(), or null
+                // if it cannot seek to that position.
+                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
+                if (cursor != null) {
+                    String locationSetting = Utility.getPreferredLocation(getActivity());
+                    Uri locationDateUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                            locationSetting, cursor.getLong(COL_WEATHER_DATE));
+                    ((Callback) getActivity()).onItemSelected(locationDateUri);
+                }
+                mPosition = position;
+            }
+        });
+
+        if (savedInstanceState != null) {
+            // The listview probably hasn't even been populated yet.  Actually perform the
+            // swapout in onLoadFinished.
+            mPosition = savedInstanceState.getInt(VIEW_POSITION, 0);
+//            Log.v(LOG_TAG, "restoring mPosition " + mPosition);
+//            mListView.smoothScrollToPosition(mPosition);
+////            mListView.setSelection(mPosition);
+        }
+        mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
+        return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        // When tablets rotate, the currently selected list item needs to be saved.
+        // When no item is selected, mPosition will be set to Listview.INVALID_POSITION,
+        // so check for that before storing.
+        if (mPosition != ListView.INVALID_POSITION) {
+//            Log.v(LOG_TAG, "onSaveInstanceState saving mPosition " + mPosition);
+            outState.putInt(VIEW_POSITION, mPosition);
+        }
+        super.onSaveInstanceState(outState);
+    }
+
+    private void updateWeather() {
+        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
+        String location = Utility.getPreferredLocation(getActivity());
+        weatherTask.execute(location);
+    }
+
+//    @Override
+//    public void onStart() {
+//        Log.v(LOG_TAG, "onStart: updateWeather()");
+//        super.onStart();
+//        updateWeather();
+//    }
+
+    public void onLocationChanged() {
+        Log.v(LOG_TAG, "onLocationChanged: updateWeather() and restartLoader()");
+        updateWeather();
+        // Starts a new or restarts an existing Loader in this manager, registers the callbacks to it,
+        // and (if the activity/fragment is currently started) starts loading it.
+        getLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
+    }
 
     // LoaderManager.LoaderCallbacks
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -111,138 +233,10 @@ public class ForecastFragment extends Fragment
     }
 
 
-    public ForecastFragment() {
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // Add this line in order for this fragment to handle menu events.
-        setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        getLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
-        super.onActivityCreated(savedInstanceState);
-        Log.v(LOG_TAG, "onActivityCreated: initLoader");
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.forecastfragment, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_refresh) {
-            updateWeather();
-            return true;
+    public void setUseTodayLayout(boolean useTodayLayout) {
+        mUseTodayLayout = useTodayLayout;
+        if (mForecastAdapter != null) {
+            mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
         }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-/*
-        String locationSetting = Utility.getPreferredLocation(getActivity());
-        // Sort order:  Ascending, by date.
-        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
-                locationSetting, System.currentTimeMillis());
-
-        Cursor cur = getActivity().getContentResolver().query(weatherForLocationUri,
-                null, null, null, sortOrder);
-        Log.v(LOG_TAG, "onCreateView: setting CursorAdapter using " + weatherForLocationUri.toString());
-        // The CursorAdapter will take data from our cursor and populate the ListView
-        // However, we cannot use FLAG_AUTO_REQUERY since it is deprecated, so we will end
-        // up with an empty list the first time we run.
-        mForecastAdapter = new ForecastAdapter(getActivity(), cur, 0);
-*/
-        // The CursorAdapter will take data from our cursor and populate the ListView.
-        mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
-
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-        // Get a reference to the ListView, and attach this adapter to it.
-        mListView = (ListView) rootView.findViewById(R.id.listview_forecast);
-        mListView.setAdapter(mForecastAdapter);
-
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
-                // CursorAdapter returns a cursor at the correct position for getItem(), or null
-                // if it cannot seek to that position.
-                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                if (cursor != null) {
-                    String locationSetting = Utility.getPreferredLocation(getActivity());
-                    Uri locationDateUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                            locationSetting, cursor.getLong(COL_WEATHER_DATE));
-                    ((Callback) getActivity()).onItemSelected(locationDateUri);
-                }
-                mPosition = position;
-            }
-        });
-
-        if (savedInstanceState != null) {
-            // The listview probably hasn't even been populated yet.  Actually perform the
-            // swapout in onLoadFinished.
-            mPosition = savedInstanceState.getInt(VIEW_POSITION, 0);
-//            Log.v(LOG_TAG, "restoring mPosition " + mPosition);
-//            mListView.smoothScrollToPosition(mPosition);
-////            mListView.setSelection(mPosition);
-        }
-        return rootView;
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        // When tablets rotate, the currently selected list item needs to be saved.
-        // When no item is selected, mPosition will be set to Listview.INVALID_POSITION,
-        // so check for that before storing.
-        if (mPosition != ListView.INVALID_POSITION) {
-//            Log.v(LOG_TAG, "onSaveInstanceState saving mPosition " + mPosition);
-            outState.putInt(VIEW_POSITION, mPosition);
-        }
-        super.onSaveInstanceState(outState);
-    }
-
-    private void updateWeather() {
-        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
-        String location = Utility.getPreferredLocation(getActivity());
-        weatherTask.execute(location);
-    }
-
-//    @Override
-//    public void onStart() {
-//        Log.v(LOG_TAG, "onStart: updateWeather()");
-//        super.onStart();
-//        updateWeather();
-//    }
-
-    public void onLocationChanged() {
-        Log.v(LOG_TAG, "onLocationChanged: updateWeather() and restartLoader()");
-        updateWeather();
-        // Starts a new or restarts an existing Loader in this manager, registers the callbacks to it,
-        // and (if the activity/fragment is currently started) starts loading it.
-        getLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
-    }
-
-    /**
-     * A callback interface that all activities containing this fragment must
-     * implement. This mechanism allows activities to be notified of item
-     * selections.
-     */
-    public interface Callback {
-        /**
-         * DetailFragmentCallback for when an item has been selected.
-         */
-        public void onItemSelected(Uri dateUri);
     }
 }
