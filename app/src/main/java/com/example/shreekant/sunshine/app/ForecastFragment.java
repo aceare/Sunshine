@@ -25,6 +25,7 @@ import com.example.shreekant.sunshine.app.data.WeatherContract;
 public class ForecastFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private static final String VIEW_POSITION = "VIEW_POSITION";
     private final String LOG_TAG = ForecastFragment.class.getSimpleName();
 
     private static final int FORECAST_LOADER_ID = 0;
@@ -58,6 +59,8 @@ public class ForecastFragment extends Fragment
     static final int COL_WEATHER_CONDITION_ID = 6;
     static final int COL_COORD_LAT = 7;
     static final int COL_COORD_LONG = 8;
+    private int mPosition;
+    private ListView mListView;
 
     // LoaderManager.LoaderCallbacks
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -90,6 +93,13 @@ public class ForecastFragment extends Fragment
         // Swap the new cursor in.  (The framework will take care of closing the
         // old cursor once we return.)
         mForecastAdapter.swapCursor(data);
+        if (mPosition != ListView.INVALID_POSITION) {
+            // If we don't need to restart the loader, and there's a desired position to restore
+            // to, do so now.
+//            Log.v(LOG_TAG, "scrolling to mPosition " + mPosition);
+            mListView.smoothScrollToPosition(mPosition);
+////          mListView.setSelection(mPosition);
+        }
     }
 
     // LoaderManager.LoaderCallbacks
@@ -160,10 +170,10 @@ public class ForecastFragment extends Fragment
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         // Get a reference to the ListView, and attach this adapter to it.
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
-        listView.setAdapter(mForecastAdapter);
+        mListView = (ListView) rootView.findViewById(R.id.listview_forecast);
+        mListView.setAdapter(mForecastAdapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView adapterView, View view, int position, long l) {
@@ -174,12 +184,33 @@ public class ForecastFragment extends Fragment
                     String locationSetting = Utility.getPreferredLocation(getActivity());
                     Uri locationDateUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
                             locationSetting, cursor.getLong(COL_WEATHER_DATE));
-                    ((Callback)getActivity()).onItemSelected(locationDateUri);
+                    ((Callback) getActivity()).onItemSelected(locationDateUri);
                 }
+                mPosition = position;
             }
         });
 
+        if (savedInstanceState != null) {
+            // The listview probably hasn't even been populated yet.  Actually perform the
+            // swapout in onLoadFinished.
+            mPosition = savedInstanceState.getInt(VIEW_POSITION, 0);
+//            Log.v(LOG_TAG, "restoring mPosition " + mPosition);
+//            mListView.smoothScrollToPosition(mPosition);
+////            mListView.setSelection(mPosition);
+        }
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        // When tablets rotate, the currently selected list item needs to be saved.
+        // When no item is selected, mPosition will be set to Listview.INVALID_POSITION,
+        // so check for that before storing.
+        if (mPosition != ListView.INVALID_POSITION) {
+//            Log.v(LOG_TAG, "onSaveInstanceState saving mPosition " + mPosition);
+            outState.putInt(VIEW_POSITION, mPosition);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     private void updateWeather() {
