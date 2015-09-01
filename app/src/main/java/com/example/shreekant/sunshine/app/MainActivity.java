@@ -46,7 +46,7 @@ public class MainActivity   extends ActionBarActivity
             }
         } else {
             mTwoPane = false;
-            getSupportActionBar().setElevation(0f);
+            getSupportActionBar().setElevation(0f); // remove shadow below action bar
         }
         Log.v(LOG_TAG, "onCreate() mTwoPane = " + mTwoPane);
 
