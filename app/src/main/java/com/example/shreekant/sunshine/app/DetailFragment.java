@@ -179,10 +179,7 @@ public class DetailFragment extends Fragment
         Log.v(LOG_TAG, "In onLoadFinished");
         if (!data.moveToFirst()) { return; }
 
-        // Read weather condition ID from cursor
-        int weatherId = data.getInt(COL_DETAILS_WEATHER_CONDITION_ID);
-        mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
-
+        // Extract details from cursor data
         long date = data.getLong(COL_DETAILS_WEATHER_DATE);
         String dateString = Utility.formatDate(date);
 
@@ -211,6 +208,10 @@ public class DetailFragment extends Fragment
         mForecastStr = String.format("%s - %s - %s/%s", dateString, weatherDescription, high, low);
 //        TextView detailTextView = (TextView)getView().findViewById(R.id.textview_forecast);
 //        detailTextView.setText(mForecastStr);
+
+        int weatherId = data.getInt(COL_DETAILS_WEATHER_CONDITION_ID);
+        mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
+        mIconView.setContentDescription(weatherDescription);
 
         FragmentActivity activity = getActivity();
         mDayNameView.setText(Utility.getDayName(activity, date));

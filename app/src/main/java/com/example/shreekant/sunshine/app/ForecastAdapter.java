@@ -22,35 +22,6 @@ public class ForecastAdapter extends CursorAdapter {
         super(context, c, flags);
     }
 
-    /**
-     * Prepare the weather high/lows for presentation.
-     */
-    private String formatHighLows(double high, double low) {
-        boolean isMetric = Utility.isMetric(mContext);
-        return Utility.formatTemperature(mContext, high, isMetric)
-                            + "/" + Utility.formatTemperature(mContext, low, isMetric);
-    }
-
-    /*
-        This is ported from FetchWeatherTask --- but now we go straight from the cursor to the
-        string.
-     */
-    private String convertCursorRowToUXFormat(Cursor cursor) {
-        // get row indices for our cursor
-//        int idx_max_temp = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP);
-//        int idx_min_temp = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP);
-//        int idx_date = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_DATE);
-//        int idx_short_desc = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_SHORT_DESC);
-
-        String highAndLow = formatHighLows(
-                cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP),
-                cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP));
-
-        return Utility.formatDate(cursor.getLong(ForecastFragment.COL_WEATHER_DATE)) +
-                " - " + cursor.getString(ForecastFragment.COL_WEATHER_DESC) +
-                " - " + highAndLow;
-    }
-
     static final int VIEW_TYPE_TODAY  = 0;
     static final int VIEW_TYPE_FUTURE = 1;
     static final int VIEW_TYPE_COUNT = 2;
@@ -93,15 +64,19 @@ public class ForecastAdapter extends CursorAdapter {
         ViewHolder holder;
         holder = (ViewHolder) view.getTag();
 
-        // Read weather icon ID from cursor
+        String weatherDescription;
+        weatherDescription = cursor.getString(ForecastFragment.COL_WEATHER_DESC);
+
+        // Extract details from cursor data
         int weatherId = cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID);
         Log.v("TMPTMP", "row " + cursor.getPosition() + " weatherId=" + weatherId);
         if (VIEW_TYPE_TODAY == getItemViewType(cursor.getPosition()))
             holder.iconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
         else
             holder.iconView.setImageResource(Utility.getIconResourceForWeatherCondition(weatherId));
+        holder.iconView.setContentDescription(weatherDescription);
         holder.dateView.setText(Utility.getFriendlyDayString(context, cursor.getLong(ForecastFragment.COL_WEATHER_DATE)));
-        holder.descView.setText(cursor.getString(ForecastFragment.COL_WEATHER_DESC));
+        holder.descView.setText(weatherDescription);
         holder.maxTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP), Utility.isMetric(context)));
         holder.minTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP), Utility.isMetric(context)));
     }

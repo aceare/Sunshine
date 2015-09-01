@@ -41,13 +41,13 @@
     <string name="format_temperature"><xliff:g id="temperature">%1.0f</xliff:g>\u00B0</string>
 
     <!-- Format for displaying Humidity [CHAR LIMIT=20] -->
-    <string name="format_humidity">HUMIDITY: <xliff:g id="humidity">%1.0f</xliff:g>%%</string>
+    <string name="format_humidity">Humidity: <xliff:g id="humidity">%1.0f</xliff:g>%%</string>
 
     <!-- Format for displaying Humidity [CHAR LIMIT=20] -->
-    <string name="format_wind">WIND: <xliff:g id="speed">%1.0f</xliff:g><xliff:g id="units">%2$s</xliff:g> <xliff:g id="direction">%3$s</xliff:g></string>
+    <string name="format_wind">Wind: <xliff:g id="speed">%1.0f</xliff:g><xliff:g id="units">%2$s</xliff:g> <xliff:g id="direction">%3$s</xliff:g></string>
 
     <!-- Format for displaying Humidity [CHAR LIMIT=20] -->
-    <string name="format_pressure">PRESSURE: <xliff:g id="pressure">%1.0f hPa</xliff:g></string>
+    <string name="format_pressure">Pressure: <xliff:g id="pressure">%1.0f hPa</xliff:g></string>
 
 </resources>
 
