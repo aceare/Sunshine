@@ -69,7 +69,7 @@ public class ForecastAdapter extends CursorAdapter {
 
         // Extract details from cursor data
         int weatherId = cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID);
-        Log.v("TMPTMP", "row " + cursor.getPosition() + " weatherId=" + weatherId);
+        Log.v("TMPTMP bindView", "row " + cursor.getPosition() + " weatherId=" + weatherId);
         if (VIEW_TYPE_TODAY == getItemViewType(cursor.getPosition()))
             holder.iconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
         else

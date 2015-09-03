@@ -1,8 +1,14 @@
 package com.example.shreekant.sunshine.app;
 
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -18,6 +24,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.shreekant.sunshine.app.data.WeatherContract;
+import com.example.shreekant.sunshine.app.service.SunshineService;
 
 /**
  * Encapsulates fetching the forecast and displaying it as a {@link ListView} layout.
@@ -164,9 +171,45 @@ public class ForecastFragment extends Fragment
     }
 
     private void updateWeather() {
-        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
+
         String location = Utility.getPreferredLocation(getActivity());
+        /*
+        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
         weatherTask.execute(location);
+        */
+
+        /*
+        Intent intent = new Intent(getActivity(), SunshineService.class);
+        intent.putExtra(SunshineService.LOCATION_KEY, location);
+        getActivity().startService(intent);
+        */
+
+        Activity context = getActivity();
+        AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, SunshineService.AlarmReceiver.class);
+        intent.putExtra(SunshineService.LOCATION_KEY, location);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() +
+                        0 * 1000, alarmIntent);
+                     // 20 * 1000, alarmIntent);
+                     // 1 * 60 * 1000, alarmIntent); // 1min
+
+        /*
+        Intent alarmIntent = new Intent(getActivity(), SunshineService.AlarmReceiver.class);
+        alarmIntent.putExtra(SunshineService.LOCATION_KEY, Utility.getPreferredLocation(getActivity()));
+        //Wrap in a pending intent which only fires once.
+        PendingIntent pi = PendingIntent.getBroadcast(getActivity(), 0,alarmIntent,PendingIntent.FLAG_ONE_SHOT);//getBroadcast(context, 0, i, 0);
+        AlarmManager am=(AlarmManager)getActivity().getSystemService(Context.ALARM_SERVICE);
+        //Set the AlarmManager to wake up the system.
+        am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, pi);
+        */
+
+        // If the alarm has been set, cancel it.
+//        if (alarmMgr!= null) {
+//            alarmMgr.cancel(alarmIntent);
+//        }
+
     }
 
 //    @Override
