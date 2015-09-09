@@ -49,5 +49,10 @@
     <!-- Format for displaying Humidity [CHAR LIMIT=20] -->
     <string name="format_pressure">Pressure: <xliff:g id="pressure">%1.0f hPa</xliff:g></string>
 
+    <!-- Account type (for sync-adapter authenticator) -->
+    <!-- SyncAdapter related -->
+    <string name="sync_account_type">sunshine.example.com</string>
+    <string name="content_authority">com.example.shreekant.sunshine.app</string>
+
 </resources>
 

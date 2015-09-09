@@ -1,14 +1,8 @@
 package com.example.shreekant.sunshine.app;
 
-import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -24,7 +18,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.shreekant.sunshine.app.data.WeatherContract;
-import com.example.shreekant.sunshine.app.service.SunshineService;
+import com.example.shreekant.sunshine.app.sync.SunshineSyncAdapter;
 
 /**
  * Encapsulates fetching the forecast and displaying it as a {@link ListView} layout.
@@ -94,9 +88,9 @@ public class ForecastFragment extends Fragment
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        Log.v(LOG_TAG, "onActivityCreated: initLoader");
         getLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
         super.onActivityCreated(savedInstanceState);
-        Log.v(LOG_TAG, "onActivityCreated: initLoader");
     }
 
     @Override
@@ -184,17 +178,6 @@ public class ForecastFragment extends Fragment
         getActivity().startService(intent);
         */
 
-        Activity context = getActivity();
-        AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, SunshineService.AlarmReceiver.class);
-        intent.putExtra(SunshineService.LOCATION_KEY, location);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-        alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                SystemClock.elapsedRealtime() +
-                        0 * 1000, alarmIntent);
-                     // 20 * 1000, alarmIntent);
-                     // 1 * 60 * 1000, alarmIntent); // 1min
-
         /*
         Intent alarmIntent = new Intent(getActivity(), SunshineService.AlarmReceiver.class);
         alarmIntent.putExtra(SunshineService.LOCATION_KEY, Utility.getPreferredLocation(getActivity()));
@@ -209,6 +192,20 @@ public class ForecastFragment extends Fragment
 //        if (alarmMgr!= null) {
 //            alarmMgr.cancel(alarmIntent);
 //        }
+
+        /*
+        Activity context = getActivity();
+        AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, SunshineService.AlarmReceiver.class);
+        intent.putExtra(SunshineService.LOCATION_KEY, location);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() +
+                        0 * 1000, alarmIntent);
+                     // 20 * 1000, alarmIntent);
+                     // 1 * 60 * 1000, alarmIntent); // 1min
+        */
+        SunshineSyncAdapter.syncImmediately(getActivity());
 
     }
 
@@ -245,6 +242,7 @@ public class ForecastFragment extends Fragment
 //                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?",     // selection
 //                new String[]{Utility.getPreferredLocation(getActivity())},          // selection params
 //                null);      // sort order
+        Log.v(LOG_TAG, "onCreateLoader: for uri " + weatherForLocationStartDateUri.toString());
         return new CursorLoader(getActivity(),
                 weatherForLocationStartDateUri,
                 FORECAST_COLUMNS,   // projection
@@ -261,7 +259,7 @@ public class ForecastFragment extends Fragment
         if (mPosition != ListView.INVALID_POSITION) {
             // If we don't need to restart the loader, and there's a desired position to restore
             // to, do so now.
-//            Log.v(LOG_TAG, "scrolling to mPosition " + mPosition);
+            Log.v(LOG_TAG, "onLoadFinished: scrolling to mPosition " + mPosition);
             mListView.smoothScrollToPosition(mPosition);
 ////          mListView.setSelection(mPosition);
         }
