@@ -179,13 +179,16 @@ public class ForecastFragment extends Fragment
         */
 
         /*
-        Intent alarmIntent = new Intent(getActivity(), SunshineService.AlarmReceiver.class);
-        alarmIntent.putExtra(SunshineService.LOCATION_KEY, Utility.getPreferredLocation(getActivity()));
-        //Wrap in a pending intent which only fires once.
-        PendingIntent pi = PendingIntent.getBroadcast(getActivity(), 0,alarmIntent,PendingIntent.FLAG_ONE_SHOT);//getBroadcast(context, 0, i, 0);
-        AlarmManager am=(AlarmManager)getActivity().getSystemService(Context.ALARM_SERVICE);
-        //Set the AlarmManager to wake up the system.
-        am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, pi);
+        Activity context = getActivity();
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent alarmIntent = new Intent(context, SunshineService.AlarmReceiver.class);
+        alarmIntent.putExtra(SunshineService.LOCATION_KEY, location);
+        // Wrap it in a pending intent which only fires once.
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, PendingIntent.FLAG_ONE_SHOT); //getBroadcast(context, 0, i, 0);
+        // Either: Set the AlarmManager to wake up the system based on locale clock.
+//        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, pendingIntent);
+        // Or: Set the AlarmManager to wake up the system based on elapsed time (better approach)
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 5000, pendingIntent);
         */
 
         // If the alarm has been set, cancel it.
@@ -193,18 +196,6 @@ public class ForecastFragment extends Fragment
 //            alarmMgr.cancel(alarmIntent);
 //        }
 
-        /*
-        Activity context = getActivity();
-        AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, SunshineService.AlarmReceiver.class);
-        intent.putExtra(SunshineService.LOCATION_KEY, location);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-        alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                SystemClock.elapsedRealtime() +
-                        0 * 1000, alarmIntent);
-                     // 20 * 1000, alarmIntent);
-                     // 1 * 60 * 1000, alarmIntent); // 1min
-        */
         SunshineSyncAdapter.syncImmediately(getActivity());
 
     }
