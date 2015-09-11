@@ -1,5 +1,6 @@
 package com.example.shreekant.sunshine.app;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,7 +28,7 @@ public class ForecastFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String VIEW_POSITION = "VIEW_POSITION";
-    private final String LOG_TAG = ForecastFragment.class.getSimpleName();
+    private static final String LOG_TAG = ForecastFragment.class.getSimpleName();
 
     private static final int FORECAST_LOADER_ID = 0;
     private ForecastAdapter mForecastAdapter;
@@ -104,10 +105,17 @@ public class ForecastFragment extends Fragment
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+
+        if (id == R.id.action_show_map) {
+            openPreferredLocationInMap();
+            return true;
+        }
+
         if (id == R.id.action_refresh) {
             updateWeather();
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -219,8 +227,9 @@ public class ForecastFragment extends Fragment
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         // This is called when a new Loader needs to be created.  This
         // sample only has one Loader, so we don't care about the ID.
-        // Create and return a CursorLoader that will take care of
-        // creating a Cursor for the data being displayed.
+
+        // To only show current and future dates, filter the query to return weather only for
+        // dates after or including today.
 
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
         Uri weatherForLocationStartDateUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
@@ -239,7 +248,7 @@ public class ForecastFragment extends Fragment
                 FORECAST_COLUMNS,   // projection
                 null,   // selection
                 null,   // selection params
-                null);  // sort order
+                sortOrder);  // sort order
     }
 
     // LoaderManager.LoaderCallbacks
@@ -269,6 +278,58 @@ public class ForecastFragment extends Fragment
         mUseTodayLayout = useTodayLayout;
         if (mForecastAdapter != null) {
             mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
+        }
+    }
+
+    private void openPreferredLocationInMap() {
+
+        Uri geoLocation = null;
+        String location = Utility.getPreferredLocation(getActivity());
+
+        if (null != mForecastAdapter) {
+            Cursor cursor = mForecastAdapter.getCursor();
+            if (null != cursor) {
+                cursor.moveToPosition(0);
+
+                location = cursor.getString(COL_LOCATION_SETTING);
+                double lat = cursor.getDouble(COL_COORD_LAT);
+                double lon = cursor.getDouble(COL_COORD_LONG);
+
+                // Map: "geo:latitude,longitude"
+                /* Following works::
+                geoLocation = Uri.parse("geo:" + lat + "," + lon + "?").buildUpon()
+                        .build();
+                */
+                // Map: "geo:latitude,longitude?z=zoom"
+                /*  Following doesn't work::
+                geoLocation = Uri.parse("geo:" + lat + "," + lon + "?").buildUpon()
+                        .appendQueryParameter("z", "11")
+                        .build();
+                */
+//works         geoLocation = Uri.parse("geo:0,0?" + "q=" + lat + "," + lon + "&z=11");
+                geoLocation = Uri.parse("geo:" + lat + "," + lon + "?z=11");
+            }
+        }
+
+        if (null == geoLocation) { // fall back to earlier (some what ambiguous) method:
+            // Map "geo:0,0?q=my+street+address"
+            geoLocation = Uri.parse("geo:0,0?").buildUpon()
+                    .appendQueryParameter("q", location)
+                    .build();
+        }
+
+        // Using the URI scheme for showing a location found on a map.  This super-handy
+        // intent can is detailed in the "Common Intents" page of Android's developer site:
+        // http://developer.android.com/guide/components/intents-common.html#Maps
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+        Log.v(LOG_TAG, "openPreferredLocationInMap: " + geoLocation);
+
+        if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Log.d(LOG_TAG, "Couldn't call " + location + ", no receiving apps installed!");
         }
     }
 }

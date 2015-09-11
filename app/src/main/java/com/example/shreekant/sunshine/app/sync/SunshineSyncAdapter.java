@@ -248,16 +248,26 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             }
 
             int inserted = 0;
+            int deleted  = 0;
+
+            // delete old data so we don't build up an endless history
+            deleted = getContext().getContentResolver().delete(WeatherContract.WeatherEntry.CONTENT_URI,
+                    WeatherContract.WeatherEntry.COLUMN_DATE + " <= ?",
+                    new String[] {Long.toString(dayTime.setJulianDay(julianStartDay-1))});
+
             // add to database
             if ( cVVector.size() > 0 ) {
                 ContentValues[] cvArray = new ContentValues[cVVector.size()];
                 cVVector.toArray(cvArray);
                 inserted = getContext().getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cvArray);
+
                 if (Utility.isNotificationsEnabled(getContext()))
                     notifyWeather();
             }
 
             Log.d(LOG_TAG, "getWeatherDataFromJson Completed. " + inserted + " Inserted");
+            if (deleted > 0)
+                Log.d(LOG_TAG, "Also, Deleted " + deleted + " entries which were older than a day.");
 
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
