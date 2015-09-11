@@ -77,8 +77,8 @@ public class ForecastAdapter extends CursorAdapter {
         holder.iconView.setContentDescription(weatherDescription);
         holder.dateView.setText(Utility.getFriendlyDayString(context, cursor.getLong(ForecastFragment.COL_WEATHER_DATE)));
         holder.descView.setText(weatherDescription);
-        holder.maxTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP), Utility.isMetric(context)));
-        holder.minTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP), Utility.isMetric(context)));
+        holder.maxTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP)));
+        holder.minTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP)));
     }
 
     public void setUseTodayLayout(boolean useTodayLayout) {

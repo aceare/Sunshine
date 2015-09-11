@@ -189,10 +189,10 @@ public class DetailFragment extends Fragment
         boolean isMetric = Utility.isMetric(getActivity());
 
         String high = Utility.formatTemperature(getActivity(),
-                data.getDouble(COL_DETAILS_WEATHER_MAX_TEMP), isMetric);
+                data.getDouble(COL_DETAILS_WEATHER_MAX_TEMP));
 
         String low = Utility.formatTemperature(getActivity(),
-                data.getDouble(COL_DETAILS_WEATHER_MIN_TEMP), isMetric);
+                data.getDouble(COL_DETAILS_WEATHER_MIN_TEMP));
 
         String humidity = Utility.getFormattedHumidity(getActivity(),
                 data.getDouble(COL_DETAILS_WEATHER_HUMIDITY));
